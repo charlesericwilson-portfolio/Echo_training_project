@@ -6,7 +6,7 @@ This repo contains all the experiments, datasets, scripts, and notes for buildin
 
 ### Current Status (April 2026)
 
-- **Best performing model**: Custom Qwen2.5 14B (Q4)
+- **Best performing model**: Custom [Qwen2.5 Coder 14B Instruct](https://huggingface.co/Qwen/Qwen2.5-Coder-14B-Instruct) (Q4)
 - Training is stable again after many struggles.
 - Seq length successfully increased to **2048**.
 - The **randomized interleaved dataset** (tool calls, reasoning, personality, ethics, and explanations mixed in random order, in triplicate) produced the best results so far — reaching a loss of **0.7** after 1.33 effective epochs.
@@ -27,7 +27,7 @@ This repo exists to document the messy, fun, and sometimes ridiculous process of
 
 ### Tech Stack
 
-- Base model: Qwen2.5 14B (also tested Mistral 3 13B — Just as much if not more headache with rope scaling)
+- Base model: [Qwen2.5 Coder 14B Instruct](https://huggingface.co/Qwen/Qwen2.5-Coder-14B-Instruct) (also tested [Mistral 3 13B Reasoning](https://huggingface.co/mistralai/Ministral-3-14B-Reasoning-2512) — Just as much if not more headache with rope scaling)
 - Training: Unsloth + Hugging Face Trainer (SFTTrainer had too many issues with sharding always reverting to DDP)
 - Hardware: 2x RTX 5070 Ti (32GB total VRAM)
 - CUDA 13.0 + open driver 590 open Kubuntu 24.04
