@@ -1,0 +1,22 @@
+conda create --name echo_env python 3.11
+conda activate echo_env
+
+# Clean first
+pip uninstall -y torch torchvision torchaudio unsloth unsloth_zoo bitsandbytes accelerate transformers triton xformers
+
+# 1. These wheels are required to recognize the Blackwell sm_100 architecture
+pip install accelerate>=0.21.0 transformers<6.0.0,>=4.56.1 sentence-transformers==5.4.0 requires torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu130
+
+# 3. Install core dependencies with pinned Blackwell-ready versions
+pip install "bitsandbytes>=0.45.0" "accelerate>=1.0.0" "transformers==4.56.1"
+
+# 4. Install Triton (MUST be 3.3.1+ for Blackwell support)
+pip install -U "triton>=3.3.1"
+
+# 5. Build xformers for Blackwell (Manual build ensures sm_100 compatibility)
+export TORCH_CUDA_ARCH_LIST="10.0"
+pip install ninja
+pip install --no-deps xformers
+
+# 6. Install Unsloth and the Zoo last to link everything correctly
+pip install unsloth unsloth_zoo
