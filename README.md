@@ -32,7 +32,7 @@ This repo exists to document the messy, fun, and sometimes ridiculous process of
 - Hardware: 2x RTX 5070 Ti (32GB total VRAM)
 - CUDA 13.0 + open driver 590 open Kubuntu 24.04
 
-### Important Lessons Learned
+### Important [Lessons Learned](https://github.com/charlesericwilson-portfolio/Echo_training_project/blob/main/Lessons_learned.md)
 
 - **Data order matters a lot.** Randomized interleaving (same data, different order every pass) helped the model generalize better and reduced overfitting compared to clean structured data.
 - With limited VRAM, we had to switch to the Hugging Face Trainer instead of Unsloth’s built-in trainer to get proper model sharding across both GPUs.
