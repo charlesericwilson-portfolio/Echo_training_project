@@ -27,7 +27,7 @@ This repo exists to document the messy, fun, and sometimes ridiculous process of
 
 ### Tech Stack
 
-- Base model: [Qwen2.5 Coder 14B Instruct](https://huggingface.co/Qwen/Qwen2.5-Coder-14B-Instruct) (also tested [Mistral 3 13B Reasoning](https://huggingface.co/mistralai/Ministral-3-14B-Reasoning-2512) — Just as much if not more headache with rope scaling)
+- Base model: [Qwen2.5 Coder 14B Instruct](https://huggingface.co/Qwen/Qwen2.5-Coder-14B-Instruct) (also tested [Mistral 3 14B Reasoning](https://huggingface.co/mistralai/Ministral-3-14B-Reasoning-2512) — Just as much if not more headache with rope scaling)
 - Training: Unsloth + Hugging Face Trainer (SFTTrainer had too many issues with sharding always reverting to DDP)
 - Hardware: 2x RTX 5070 Ti (32GB total VRAM)
 - CUDA 13.0 + open driver 590 open Kubuntu 24.04
