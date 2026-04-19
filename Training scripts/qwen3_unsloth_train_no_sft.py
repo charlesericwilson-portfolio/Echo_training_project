@@ -9,9 +9,9 @@ from datasets import Dataset
 from transformers import Trainer, TrainingArguments, DataCollatorForLanguageModeling
 
 # ====================== CONFIG ======================
-model_path = "/home/eric/base_models/Qwen3-14B"   # ← Change to your actual Qwen3 path
+model_path = ""   # ← Change to your actual Qwen3 path
 
-jsonl_file = "/home/eric/Master_training_data/step1v2_split.jsonl"
+jsonl_file = ""
 
 max_seq_length = 2048
 r = 128
@@ -156,10 +156,10 @@ trainer = Trainer(
     data_collator=data_collator,
     args=TrainingArguments(
         per_device_train_batch_size=1,
-        gradient_accumulation_steps=96,           # You had 96 before, 32 is safer
+        gradient_accumulation_steps=96,           
         warmup_steps=100,
         num_train_epochs=1,
-        learning_rate=1e-5,                       # You had this low — keep if you want slow learning
+        learning_rate=1e-5,                      
         warmup_ratio=0.30,
         max_grad_norm=0.4,
         bf16=True,
@@ -169,7 +169,7 @@ trainer = Trainer(
         optim="paged_adamw_8bit",
         weight_decay=0.15,
         lr_scheduler_type="cosine",
-        output_dir="/media/eric/Models/Merged_models/custom_qwen3_adapter",
+        output_dir="", # Add path here
         report_to="none",
         save_strategy="steps",
         save_steps=49,
@@ -182,6 +182,6 @@ trainer = Trainer(
 print("\nStarting training...")
 trainer.train()
 
-model.save_pretrained("/media/eric/Models/Merged_models/custom_qwen3_adapter")
-tokenizer.save_pretrained("/media/eric/Models/Merged_models/custom_qwen3_adapter")
+model.save_pretrained("") # Add path here
+tokenizer.save_pretrained("") # Add path here
 print("Training completed!")
