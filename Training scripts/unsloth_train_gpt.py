@@ -8,8 +8,8 @@ from trl import SFTTrainer
 from transformers import TrainingArguments
 
 # ====================== CONFIG ======================
-model_path = "/home/eric/base_models/Qwen2.5-Coder-14B-Instruct"
-jsonl_file = "/home/eric/Master_training_data/step1v2_split.jsonl"
+model_path = ""
+jsonl_file = ""
 
 max_seq_length = 4096
 r = 128
@@ -98,7 +98,7 @@ trainer = SFTTrainer(
         optim="paged_adamw_8bit",
         weight_decay=0.12,
         lr_scheduler_type="cosine",
-        output_dir="/media/eric/Models/Merged_models/custom_echo2.1_adapter",
+        output_dir="",
         report_to="none",
         save_strategy="steps",
         save_steps=48,
@@ -108,6 +108,6 @@ trainer = SFTTrainer(
 print("\nStarting training...")
 trainer.train()
 
-model.save_pretrained("/media/eric/Models/Merged_models/custom_echov2.1_adapter")
-tokenizer.save_pretrained("/media/eric/Models/Merged_models/custom_echo2.1_adapter")
+model.save_pretrained("")
+tokenizer.save_pretrained("")
 print("Training completed!")
