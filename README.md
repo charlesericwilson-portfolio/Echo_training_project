@@ -8,7 +8,7 @@ This repo contains all the experiments, datasets, scripts, and notes for buildin
 
 - **Best performing model**: Custom [Qwen2.5 Coder 14B Instruct](https://huggingface.co/Qwen/Qwen2.5-Coder-14B-Instruct) (Q4)
 - Training is stable again after many [struggles](https://github.com/charlesericwilson-portfolio/Echo_training_project/blob/main/Lessons_learned.md).
-- Seq length successfully increased to **2048**.
+- Seq length successfully increased to **4096** with new training [script](https://github.com/charlesericwilson-portfolio/Echo_training_project/blob/main/Training%20scripts/unsloth_train_gpt.py).
 - The **randomized interleaved dataset** (tool calls, reasoning, personality, ethics, and explanations mixed in random order, in triplicate) produced the best results so far — reaching a loss of **0.7** after 1.33 effective epochs.
 
 We had a lot of fun (and a lot of pain) figuring this out. The journey was messy, chaotic, and full of "why is this happening again?" moments, but we kept laughing through it and learned a ton.
