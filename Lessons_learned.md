@@ -35,12 +35,12 @@ We spent many hours trying to train a Qwen2.5-Coder-14B-Instruct model using QLo
 ### Final Working Configuration
 - **Model**: Qwen2.5-Coder-14B-Instruct (4-bit)
 - **Device Map**: `balanced` with `max_memory`
-- **Batch Size**: 1
+- **Batch Size**: 3
 - **Gradient Accumulation**: 32
-- **Max Seq Length**: 2048 (safe limit due to RoPE + kernel issues)
-- **LoRA Rank (r)**: 192
-- **Trainer**: Plain `transformers.Trainer` (SFTTrainer caused problems)
-- **Learning Rate**: Very low (ended at ~2e-6 or lower)
+- **Max Seq Length**: 4098 (got unsloth sft trainer working properly)
+- **LoRA Rank (r)**: 128
+- **Trainer**: SFTTrainer
+- **Learning Rate**: Very low (ended at ~9e-6 or lower)
 - **Data**: Split long replies into shorter chunks with "continue" prompts
 
 ### Key Lessons Learned
