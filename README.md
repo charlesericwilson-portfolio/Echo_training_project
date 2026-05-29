@@ -9,7 +9,7 @@ This repo contains all the experiments, datasets, scripts, and notes for buildin
 - **Best performing model**: Custom [Qwen2.5 Coder 14B Instruct](https://huggingface.co/Qwen/Qwen2.5-Coder-14B-Instruct) (Q4)
 - Training is stable again after many [struggles](https://github.com/charlesericwilson-portfolio/Echo_training_project/blob/main/Lessons_learned.md).
 - Seq length successfully increased to **4096** with new training [script](https://github.com/charlesericwilson-portfolio/Echo_training_project/blob/main/Training%20scripts/unsloth_train_gpt.py).
-- The **randomized interleaved dataset** (tool calls, reasoning, personality, ethics, and explanations mixed in random order, in triplicate) produced the best results so far — reaching a loss of **0.7** after 1.33 effective epochs.
+- The **randomized interleaved dataset** (tool calls, reasoning, personality, ethics, and explanations mixed in random order, in triplicate) produced the best results so far — reaching a loss of **0.7** after 3 actual epochs 1 training epoch.
 
 We had a lot of fun (and a lot of pain) figuring this out. The journey was messy, chaotic, and full of "why is this happening again?" moments, but we kept laughing through it and learned a ton.
 
@@ -27,19 +27,18 @@ This repo exists to document the messy, fun, and sometimes ridiculous process of
 
 ### Tech Stack
 
-- Base model: [Qwen2.5 Coder 14B Instruct](https://huggingface.co/Qwen/Qwen2.5-Coder-14B-Instruct), also testing [Mistral 3 14B Reasoning](https://huggingface.co/mistralai/Ministral-3-14B-Reasoning-2512) 
-- Training: Unsloth + Hugging Face Trainer (SFTTrainer had too many issues with sharding always reverting to DDP)
+- Base model: [Qwen2.5 Coder 14B Instruct](https://huggingface.co/Qwen/Qwen2.5-Coder-14B-Instruct), also testing [Mistral 3 14B Reasoning](https://huggingface.co/mistralai/Ministral-3-14B-Reasoning-2512) and [Qwen 3 14B](https://huggingface.co/Qwen/Qwen3-14B)
+- Training: initially Unsloth + Hugging Face Trainer but had difficulty increasing the batch size to fit the examples with Qwen models.
+- Final Training: Unsloth + SFT trainer
 - Hardware: 2x RTX 5070 Ti (32GB total VRAM)
 - CUDA 13.0 + open driver 590 open Kubuntu 24.04
 
 ### Important [Lessons Learned](https://github.com/charlesericwilson-portfolio/Echo_training_project/blob/main/Lessons_learned.md)
 
 - **Data order matters a lot.** Randomized interleaving (same data, different order every pass) helped the model generalize better and reduced overfitting compared to clean structured data.
-- With limited VRAM, we had to switch to the Hugging Face Trainer instead of Unsloth’s built-in trainer to get proper model sharding across both GPUs.
+- With limited VRAM it was important to ensure model sharding across both GPUs was working properly.
 - Qwen has been easier to train than Mistral on this hardware at this moment but plan on diving deeper.
-- Seq length is now stable at 2048.
-
-(For a deeper dive into the VRAM/sharding struggles and why we had to switch trainers, see the separate `LESSONS_LEARNED.md` file.)
+- Seq length is now stable all the way up to 8192.
 
 ### How to Reproduce
 
@@ -50,14 +49,13 @@ The randomized interleaved dataset approach is currently our best performer.
 ### Future Plans
 
 - Keep refining the randomized dataset style
-- Push for even better context handling at 2048+
 - Possibly test Phi-4 or other bases if we hit walls again
 
 This repo is the honest behind-the-scenes of the model training side. The actual agent wrapper lives in the main [Echo repo](https://github.com/charlesericwilson-portfolio/Echo_projectv0).
 
 Built with collaboration from Grok (xAI) and a ridiculous amount of stubbornness.
 
-— Charles (Eric), April 2026
+— Charles (Eric), May 2026
 
 "Even when it was breaking, we were still having fun figuring it out."
 
