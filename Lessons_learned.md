@@ -9,7 +9,7 @@ This document captures the hard-earned lessons from building and training Echo a
 - Pure conda or uv pip venvs are extremely fragile when mixing Unsloth, Torch, CUDA, and unsloth_zoo.  
 - Order of installation matters more than most people admit. Torch must be installed first, then transformers early, then Unsloth, then unsloth_zoo with `--no-deps`.
 - Unsloth Zoo is often the main source of version conflicts and VRAM bloat, even if you don’t explicitly use it.
-- Switching to Conda helped stabilize things when pip became unbearable.
+- Switching to Conda helped stabilize things when uv became unbearable.
 - CUDA version mismatches (12.0 vs 12.8 vs 13.1) cause silent OOMs and weird runtime behavior. Always verify with `torch.version.cuda` and `nvcc --version`.
 
 **Lesson:** Never assume “it should just work.” Pin versions aggressively and install in strict order.
@@ -17,7 +17,7 @@ This document captures the hard-earned lessons from building and training Echo a
 ### 2. Training Dynamics & Dataset Design
 
 - **Randomized interleaved datasets beat clean structured ones.**
-- Started with ~3767 high-quality examples, later expanded and split to fit context constraints then deduped and cleaned to get ~7338 examples.
+- Started with ~7338 high-quality examples, later expanded and split to fit context constraints then deduped and cleaned to get ~22k examples.
  
 - The chaotic version (tool calls → reasoning → personality → ethics → explanations, all mixed and in different order each pass) generalized much better than the deduplicated, logically ordered dataset — even with fewer effective epochs.
 
@@ -25,7 +25,7 @@ This document captures the hard-earned lessons from building and training Echo a
 
 - Small models are extremely sensitive to data order and repetition. Clean, deduped datasets can cause early plateauing (loss stuck at ~1.2).
 
-- High rank (r=192) + lower alpha (64) + higher LR works for 14B but can cause instability on smaller models.
+- High rank (r=128) + lower alpha (64) + higher LR works for 14B but can cause instability on smaller models.
 
 **Lesson:** For small-to-medium models, embrace controlled chaos in the dataset. Interleaving and random order can be more effective than perfect structure.
 
@@ -41,7 +41,6 @@ We spent many hours trying to train a Qwen2.5-Coder-14B-Instruct model using QLo
 - **LoRA Rank (r)**: 128
 - **Trainer**: SFTTrainer
 - **Learning Rate**: Very low (ended at ~9e-6 or lower)
-- **Data**: Split long replies into shorter chunks with "continue" prompts
 
 ### Key Lessons Learned
 
@@ -57,6 +56,7 @@ We spent many hours trying to train a Qwen2.5-Coder-14B-Instruct model using QLo
    - Switching to plain `Trainer` + manual tokenization fixed the VRAM imbalance (from 10/7 GB → ~7-8 GB balanced).
    - Even with 5 GB free on one GPU, sudden spikes can still cause OOM due to fragmentation. Setting `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` helps.
    **Lesson:** When VRAM is tight, don’t trust Unsloth’s SFT trainer for large models. Use HF Trainer + manual sharding settings for better control.
+     The issue solved its self with an update to unsloth fixing model sharding.
      
 3. **Sequence Length Is Heavily Limited by RoPE Scaling**
    - Qwen2.5-Coder models have strict internal RoPE assumptions.
@@ -65,11 +65,13 @@ We spent many hours trying to train a Qwen2.5-Coder-14B-Instruct model using QLo
    - **Workaround**: Split long conversations into multiple shorter examples with "Continue with the same scenario..." prompts.
    - Seq len is often the real bottleneck, not just VRAM.
    **Lesson:** Sometimes you have to work within the model’s current limitations (1024–2048) and make the dataset fit, rather than fighting for longer context.
+     This issue was fixxed with an updat to unsloth. We used SFT trainer and got the sequence length to 8192 but only needed 4096 to fit all examples.
    - Mistral 15B was surprisingly harder to set up to train than Qwen on this hardware.
 
 4. **Batch Size vs Gradient Accumulation Trade-off**
    - `per_device_train_batch_size=2` often re-introduced device errors.
    - Staying at batch size 1 + high gradient accumulation (32) was more stable.
+   - This was fixed when we got SFT trainer working properly and we trained at batch size 3.
 
 5. **Padding and Label Masking Matter A Lot**
    - `padding="max_length"` + proper `-100` masking for padding tokens was essential to avoid shape mismatches in the loss.
@@ -83,12 +85,10 @@ We spent many hours trying to train a Qwen2.5-Coder-14B-Instruct model using QLo
 
 ### What We Tried That Failed
 - Mixing `device_map="balanced"` with `torchrun` / DDP
-- Using SFTTrainer with Unsloth
-- Aggressive sequence lengths (2048+) without proper RoPE scaling
 - Relying on Unsloth's fused CE loss and RMS kernels on Blackwell
 
 ### Recommendations for Similar Setups
-- Start with plain `Trainer` + standard PEFT when using Qwen2.5 on 50-series GPUs.
+- Start with Unsloth + SFT trainer when using Qwen2.5 on 50-series GPUs.
 - Split long examples rather than fighting for high `max_seq_length`.
 - Use very low learning rates if loss drops too fast.
 - Always monitor VRAM split closely — imbalance usually means hidden DDP/Accelerate interference.
@@ -99,7 +99,7 @@ We spent many hours trying to train a Qwen2.5-Coder-14B-Instruct model using QLo
 - Using `lora_alpha = .5×r` (r=196, alpha=98) provided more stable training than previous alpha experiments.
 - Deduplicating the dataset (reduced to 7338 examples) removed noise and improved training stability.
 - Very low learning rates (down to 2e-6) successfully slowed down the loss drop, allowing more gradual learning.
-- Saving checkpoints every 230 steps (end of each epoch) worked reliably with the regular `Trainer` + FSDP setup.
+- Saving checkpoints every 230 steps (end of each epoch) worked reliably.
 
 ### Major Challenges & Pain Points
 - **RoPE/YaRN scaling issues**: Only `max_seq_length = 1024-2048` worked reliably with Unsloth + regular Trainer + FSDP. Higher values caused errors or broken behavior.
@@ -107,6 +107,7 @@ We spent many hours trying to train a Qwen2.5-Coder-14B-Instruct model using QLo
 - Splitting the data made loss drop faster than expected, even with very low LR, because the model was learning short fragments and continuation patterns.
 - Gradient accumulation steps (16 vs 32) had almost no effect on wall-clock training time due to tiny per-device batch size + FSDP overhead.
 - FSDP + regular `Trainer` was required for memory reasons, but made iteration slower and less flexible than SFTTrainer.
+- All the problem with SFT trainer was fixed with the update.
 
 ### Key Takeaways
 - **Context length matters enormously** for deep reasoning and tool use. Hard context limits force compromises in data quality.
@@ -120,7 +121,7 @@ We spent many hours trying to train a Qwen2.5-Coder-14B-Instruct model using QLo
 ### What I Would Do Differently Next Time
 - Spend more upfront time on data formatting and try to minimize aggressive splitting.
 - Keep a larger set of clean, full-length examples for validation from the beginning.
-- Test smaller models (7B or 32B) first for faster iteration before scaling to 14B.
+- Test smaller models first for faster iteration before scaling to 14B.
 - Consider models with more flexible RoPE scaling if long coherent reasoning is critical.
 - Allocate more time for qualitative evaluation instead of only watching loss.
 
