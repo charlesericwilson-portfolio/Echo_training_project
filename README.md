@@ -33,6 +33,14 @@ This repo exists to document the messy, fun, and sometimes ridiculous process of
 - Hardware: 2x RTX 5070 Ti (32GB total VRAM)
 - CUDA 13.0 + open driver 590 open Kubuntu 24.04
 
+### Specific changes made to support the framework
+I changed the tokenizer chat template to accept user, assistant, system, and tool message types.
+The Problem with Standard Tool Result Handling
+Most OpenAI-compatible chat templates only define three message roles: system, user, and assistant. When an agent framework needs to return tool output back to the model, the only available slot is user — so tool results get injected as if the human typed them.
+This creates a fundamental semantic mismatch. The model was trained to treat user messages as new instructions requiring a response. So when it sees tool output injected as a user message, it reasons: a user gave me new information, I should act on it — and calls another tool. Which produces more output. Which gets injected as another user message. Which triggers another tool call. The loop never resolves because nothing in the token stream signals "this task is complete."
+The Solution
+By extending the tokenizer config to recognize a native tool role as a first-class message type, the model receives tool output in a semantically distinct slot it was trained to understand as feedback from its own actions, not as a new request from a user. It knows the wrapper executed the command on its behalf. It knows the output is the result of something it initiated. And it knows when the task is done because the feedback confirms completion rather than prompting further action.
+
 ### Important [Lessons Learned](https://github.com/charlesericwilson-portfolio/Echo_training_project/blob/main/Lessons_learned.md)
 
 - **Data order matters a lot.** Randomized interleaving (same data, different order every pass) helped the model generalize better and reduced overfitting compared to clean structured data.
