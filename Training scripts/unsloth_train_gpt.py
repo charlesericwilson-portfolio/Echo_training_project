@@ -11,7 +11,7 @@ from transformers import TrainingArguments
 model_path = ""
 jsonl_file = ""
 
-max_seq_length = 4096
+max_seq_length = 9252
 r = 128
 lora_alpha = 128
 use_rslora = True
@@ -83,11 +83,11 @@ trainer = SFTTrainer(
     packing=False,
 
     args=TrainingArguments(
-        per_device_train_batch_size=3,
-        gradient_accumulation_steps=32,
+        per_device_train_batch_size=4,
+        gradient_accumulation_steps=16,
         warmup_steps=100,
-        num_train_epochs=1,
-        learning_rate=9e-6,
+        num_train_epochs=3,
+        learning_rate=6e-5,
         warmup_ratio=0.30,
         max_grad_norm=0.4,
         fp16=False,
@@ -100,8 +100,8 @@ trainer = SFTTrainer(
         lr_scheduler_type="cosine",
         output_dir="",
         report_to="none",
-        save_strategy="steps",
-        save_steps=48,
+        save_strategy="epoch",
+        save_steps=1,
     ),
 )
 
