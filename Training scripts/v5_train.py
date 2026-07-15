@@ -8,8 +8,8 @@ from trl import SFTTrainer
 from transformers import TrainingArguments, EarlyStoppingCallback
 
 # ====================== CONFIG ======================
-model_path = "/home/eric/base_models/Qwen2.5-Coder-14B-Instruct"
-jsonl_file = "/home/eric/Master_training_data/v5_base.jsonl"
+model_path = ""
+jsonl_file = ""
 
 max_seq_length = 7000
 r = 128
@@ -22,7 +22,7 @@ patience = 2             # Early stop after evals with no improvement
 # ===================================================
 
 print("Loading model and modified tokenizer...")
-shutil.rmtree("/home/eric/scripts/unsloth_compiled_cache", ignore_errors=True)
+shutil.rmtree("", ignore_errors=True)
 
 # 1. Load the model and tokenizer (Unsloth automatically loads your disk configurations)
 model, tokenizer = FastLanguageModel.from_pretrained(
@@ -124,7 +124,7 @@ trainer = SFTTrainer(
         optim="paged_adamw_8bit",
         weight_decay=0.12,
         lr_scheduler_type="cosine",
-        output_dir="/media/eric/Models/Merged_models/custom_echo_instroder2.2/adapter",
+        output_dir="",
         report_to="none",
     ),
     callbacks=[EarlyStoppingCallback(early_stopping_patience=patience)],
@@ -146,6 +146,6 @@ except:
     print("No checkpoint found, starting fresh.")
     trainer.train(resume_from_checkpoint=False)
 
-model.save_pretrained("/media/eric/Models/Merged_models/custom_echo_instroder2.2/adapter")
-tokenizer.save_pretrained("/media/eric/Models/Merged_models/custom_echo_instroder2.2/adapter")
+model.save_pretrained("")
+tokenizer.save_pretrained("")
 print("Training completed successfully!")
